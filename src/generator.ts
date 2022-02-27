@@ -22,11 +22,12 @@ import { generateApis } from "./generateApis";
 import { generateTypes } from "./generateTypes";
 import { generateConstants } from "./generateConstants";
 import { generateHook } from "./generateHook";
+import { generateEffector } from "./generateEffector";
 
 function generator(
   input: SwaggerJson,
   config: Config,
-): { code: string; hooks: string; type: string } {
+): { code: string; hooks: string; type: string; funcs: string } {
   const apis: ApiAST[] = [];
   const types: TypeAST[] = [];
   let constantsCounter = 0;
@@ -234,11 +235,13 @@ function generator(
     code += generateConstants(constants);
     const type = generateTypes(types, config);
     const hooks = config.reactHooks ? generateHook(apis, types, config) : "";
-
-    return { code, hooks, type };
+    const funcs = config.effectorFuncs
+      ? generateEffector(apis, types, config)
+      : "";
+    return { code, hooks, type, funcs };
   } catch (error) {
     console.error({ error });
-    return { code: "", hooks: "", type: "" };
+    return { code: "", hooks: "", type: "", funcs: "" };
   }
 }
 

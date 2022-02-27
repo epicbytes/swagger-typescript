@@ -7,7 +7,12 @@ import {
 } from "fs";
 import { format } from "prettier";
 import { SwaggerJson, SwaggerConfig, Config } from "./types";
-import { HTTP_REQUEST, CONFIG, FILE_HOOKS_CONFIG } from "./strings";
+import {
+  HTTP_REQUEST,
+  CONFIG,
+  FILE_HOOKS_CONFIG,
+  FILE_FUNCS_CONFIG,
+} from "./strings";
 import { getJson } from "./getJson";
 import { generator } from "./generator";
 import { build } from "tsc-prog";
@@ -46,6 +51,7 @@ const generateService = async (config: Config, cli?: Partial<Config>) => {
     tag,
     keepJson,
     reactHooks,
+    effectorFuncs,
     local,
   } = config;
 
@@ -96,7 +102,7 @@ const generateService = async (config: Config, cli?: Partial<Config>) => {
       }
     }
 
-    const { code, hooks, type } = generator(input, config);
+    const { code, hooks, type, funcs } = generator(input, config);
 
     if (mock) {
       generateMock(input, config);
@@ -112,6 +118,14 @@ const generateService = async (config: Config, cli?: Partial<Config>) => {
       writeFileSync(`${dir}/hooks.ts`, hooks);
       if (!existsSync(`${dir}/hooksConfig.${isToJs ? "js" : "ts"}`)) {
         writeFileSync(`${dir}/hooksConfig.ts`, FILE_HOOKS_CONFIG);
+      }
+      console.log(chalk.yellowBright("hooks Completed"));
+    }
+
+    if (effectorFuncs && funcs) {
+      writeFileSync(`${dir}/funcs.ts`, funcs);
+      if (!existsSync(`${dir}/funcsConfig.${isToJs ? "js" : "ts"}`)) {
+        writeFileSync(`${dir}/funcsConfig.ts`, FILE_FUNCS_CONFIG);
       }
       console.log(chalk.yellowBright("hooks Completed"));
     }
@@ -132,14 +146,6 @@ const generateService = async (config: Config, cli?: Partial<Config>) => {
 
     // signalR hub definition
     let hubCode = null;
-    if (hub) {
-      const hubJson: HubJson = hub ? await getJson(hub) : null;
-
-      hubCode = signalRGenerator(hubJson);
-      hubCode && writeFileSync(`${dir}/hub.ts`, hubCode);
-
-      console.log(chalk.yellowBright("hub Completed"));
-    }
 
     if (isToJs) {
       const files = [

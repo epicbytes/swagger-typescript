@@ -260,6 +260,7 @@ export interface Config {
   /** Default is false */
   keepJson?: boolean;
   reactHooks?: boolean;
+  effectorFuncs?: boolean;
   useQuery?: string[];
   useInfiniteQuery?: string[];
   tag?: string[];
